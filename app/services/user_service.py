@@ -8,9 +8,6 @@ class UserService:
     def __init__(self, user_repo: UserRepository):
         self.user_repo = user_repo
 
-    def __call__(self):
-        return self
-
     def create_user(self, user_create_request: UserCreateRequest) -> UserResponse:
         user_dict = user_create_request.model_dump()
         user_dict["hashed_password"] = (
