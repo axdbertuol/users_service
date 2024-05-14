@@ -1,0 +1,20 @@
+from sqlalchemy import Boolean, Column, Integer, String
+from .database import Base, engine
+
+
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True)
+    email = Column(String, unique=True, index=True)
+    username = Column(String, unique=True, index=True)
+    hashed_password = Column(String)
+    status = Column(Boolean, default=True)
+    role = Column(String, default="user")
+    social_id = Column(String, default="")
+
+    full_name = Column(String, index=True)
+    # items = relationship("Item", back_populates="owner")
+
+
+Base.metadata.create_all(bind=engine)
