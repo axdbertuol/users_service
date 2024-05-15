@@ -7,12 +7,12 @@ from fastapi.testclient import TestClient
 from sqlalchemy import StaticPool, create_engine
 from sqlalchemy.orm import sessionmaker
 
-from app.common.database import Base, get_db
-from app.common.dependencies import make_user_router_deps
-from app.main import app
-from app.users.models import User
-from app.users.user_repository import UserRepository
-from app.users.user_service import UserService
+from ..common.database import Base, get_db
+from ..common.dependencies import make_user_router_deps
+from ..main import app
+from ..users.models import User
+from ..users.user_repository import UserRepository
+from ..users.user_service import UserService
 
 # SQLALCHEMY_DATABASE_URL = "sqlite:///./sql_app.db"
 SQLALCHEMY_DATABASE_URL = "sqlite://"

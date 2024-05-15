@@ -3,17 +3,17 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    api_version: str = Field(...)
-    app_name: str = Field(...)
-    app_port: int = Field(...)
-    environment: str = Field(...)
+    api_version: str = Field("v1")
+    app_name: str = Field("users_service")
+    app_port: int = Field("3336")
+    environment: str = Field("dev")
 
-    database_driver: str = Field(...)
-    database_host: str = Field(...)
-    database_port: int = Field(...)
-    database_user: str = Field(...)
-    database_password: str = Field(...)
-    database_dbname: str = Field(...)
+    database_driver: str = Field("postgresql")
+    database_host: str = Field("localhost")
+    database_port: int = Field("5432")
+    database_user: str = Field("tester")
+    database_password: str = Field("postgres")
+    database_dbname: str = Field("test-db")
 
     model_config = SettingsConfigDict(
         env_file=".env", extra="ignore", populate_by_name=True

@@ -10,18 +10,34 @@ jobs:
       - image: cimg/python:3.10-node
         environment:
           CI: "y"
-      - image: axdr3/cci-pg-uuid:0.0.2
-        environment:
-          POSTGRES_USER: postgres
-          POSTGRES_DB: test-db
-          POSTGRES_PASSWORD: postgres
     steps:
       - checkout
       - python/install-packages:
           pkg-manager: poetry
+      # - run:
+      #     name: Update PATH and Define Environment Variable at Runtime
+      #     # Add source command to execute code and make variables
+      #     # available in current step.
+      #     command: |
+      #       echo 'export API_VERSION=/path/to/foo/bin:"$PATH"' >> "$BASH_ENV"
+      #       echo "export VERY_IMPORTANT=VALUE_CONTENT" >> "$BASH_ENV"
+      #       source "$BASH_ENV"
       - run:
           name: Run tests
-          command: poetry run pytest --junitxml=junit.xml || ((($? == 5)) && echo 'Did not find any tests to run.')
+          command: |
+            # echo 'export API_VERSION=v1' >> "$BASH_ENV"
+            # echo 'export APP_NAME=users_service' >> "$BASH_ENV"
+            # echo 'export APP_PORT=3336' >> "$BASH_ENV"
+            # echo 'export ENVIRONMENT=ci' >> "$BASH_ENV" 
+            # echo 'export DATABASE_DRIVER=postgresql' >> "$BASH_ENV"
+            # echo 'export DATABASE_HOST=0' >> "$BASH_ENV"
+            # echo 'export DATABASE_USER=any' >> "$BASH_ENV"
+            # echo 'export DATABASE_PORT=1111' >> "$BASH_ENV"
+            # echo 'export DATABASE_PASSWORD=any' >> "$BASH_ENV"
+            # echo 'export DATABASE_DBNAME=any' >> "$BASH_ENV"
+            # source "$BASH_ENV"
+            poetry run pytest --junitxml=junit.xml || ((($? == 5)) && echo 'Did not find any tests to run.')
+            
       - store_test_results:
           path: junit.xml
   deploy:
