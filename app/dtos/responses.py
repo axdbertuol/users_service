@@ -4,7 +4,19 @@ from pydantic import BaseModel
 T = TypeVar("T")
 
 
-class ResponseModel(BaseModel, Generic[T]):
-    success: bool
+class ErrorModel(BaseModel):
+    message: str
+    type: Optional[str] = None
+    target: Optional[str] = ""
+
+
+class ResponseModelData(BaseModel):
     data: Optional[T] = None
-    error: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
+class ResponseModel(ResponseModelData, Generic[T]):
+    success: bool
+    error: Optional[ErrorModel] = None
