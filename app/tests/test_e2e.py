@@ -1,12 +1,12 @@
 import pytest
 from httpx import ASGITransport, AsyncClient
-from app.main import app
+from ..main import app
 
 
 @pytest.mark.asyncio
 async def test_create_user():
     async with AsyncClient(
-        transport=ASGITransport(app=app), base_url="http://localhost:8000"
+        transport=ASGITransport(app=app), base_url="http://localhost:3336"
     ) as client:
         user_create_request = {
             "email": "tes2t@example.com",
@@ -23,7 +23,7 @@ async def test_create_user():
 @pytest.mark.asyncio
 async def test_read_user():
     async with AsyncClient(
-        transport=ASGITransport(app=app), base_url="http://localhost:8000"
+        transport=ASGITransport(app=app), base_url="http://localhost:3336"
     ) as client:
         response = await client.get("/api/v1/users/1")
         assert response.status_code == 200
