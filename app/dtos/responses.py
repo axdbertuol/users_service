@@ -1,5 +1,5 @@
 from typing import Generic, Optional, TypeVar
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 T = TypeVar("T")
 
@@ -10,13 +10,8 @@ class ErrorModel(BaseModel):
     target: Optional[str] = ""
 
 
-class ResponseModelData(BaseModel):
-    data: Optional[T] = None
-
-    class Config:
-        from_attributes = True
-
-
-class ResponseModel(ResponseModelData, Generic[T]):
+class ResponseModel(BaseModel, Generic[T]):
     success: bool
     error: Optional[ErrorModel] = None
+    data: Optional[T] = None
+    model_config = ConfigDict(from_attributes=True)
