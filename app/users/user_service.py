@@ -3,16 +3,16 @@
 from typing import Optional
 
 
-from app.exceptions import InternalServerError, NotFoundError
-from ..repositories import schemas
-from ..repositories.user_repository import UserRepository
+from app.common.exceptions import InternalServerError, NotFoundError
+from .schemas import UserCreateRequest, UserUpdateRequest, User
+from .user_repository import UserRepository
 
 
 class UserService:
     def __init__(self, user_repo: UserRepository):
         self.user_repo = user_repo
 
-    def create_user(self, user_create_request: schemas.UserCreateRequest):
+    def create_user(self, user_create_request: UserCreateRequest):
         user_dict = user_create_request.model_dump()
         user_dict["hashed_password"] = (
             "hash_password_function(user_create_request.password)"
@@ -20,28 +20,24 @@ class UserService:
         del user_dict["password"]
         created_user = self.user_repo.create(user_dict)
         try:
-            parsed_user = schemas.User.model_validate(
-                created_user, from_attributes=True
-            )
+            parsed_user = User.model_validate(created_user, from_attributes=True)
         except Exception:
             raise InternalServerError("Error parsing to user schema")
         return parsed_user
 
-    def get_user(self, user_id: int) -> Optional[schemas.User]:
+    def get_user(self, user_id: int) -> Optional[User]:
         user = self.user_repo.get(
             user_id,
         )
         if user is None:
             raise NotFoundError
         try:
-            parsed_user = schemas.User.model_validate(user, from_attributes=True)
+            parsed_user = User.model_validate(user, from_attributes=True)
         except Exception:
             raise InternalServerError("Error parsing to user schema")
         return parsed_user
 
-    def update_user(
-        self, user_id: int, user_update_request: schemas.UserUpdateRequest
-    ) -> None:
+    def update_user(self, user_id: int, user_update_request: UserUpdateRequest) -> None:
         user = self.user_repo.get(user_id)
         if user is None:
             raise NotFoundError

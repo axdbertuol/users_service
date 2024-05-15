@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String
-from .database import Base, engine
+from app.common.database import Base
 
 
 class User(Base):
@@ -15,6 +15,3 @@ class User(Base):
 
     full_name = Column(String, index=True)
     # items = relationship("Item", back_populates="owner")
-
-
-Base.metadata.create_all(bind=engine)

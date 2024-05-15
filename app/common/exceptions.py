@@ -1,7 +1,7 @@
-from fastapi import HTTPException, Request
+from fastapi import Request
 from fastapi.responses import JSONResponse
 
-from app.dtos.responses import ErrorModel, ResponseModel
+from app.common.responses import ErrorModel, ResponseModel
 
 
 class NotFoundError(Exception):
@@ -17,13 +17,15 @@ class InternalServerError(Exception):
 
 
 async def not_found_exception_handler(request: Request, exc: NotFoundError):
-    error = ErrorModel(message=str(exc) if str(exc) else "Not found")
+    error = ErrorModel(message=str(exc) if str(exc) else "Not found", type="NotFound")
     response_model = ResponseModel(success=False, error=error)
     return JSONResponse(status_code=404, content=response_model.model_dump())
 
 
 async def duplicated_exception_handler(request: Request, exc: DuplicatedError):
-    error = ErrorModel(message=str(exc) if str(exc) else "Duplicated entry")
+    error = ErrorModel(
+        message=str(exc) if str(exc) else "Duplicated entry", type="DuplicatedEntry"
+    )
     response_model = ResponseModel(success=False, error=error)
     return JSONResponse(status_code=400, content=response_model.model_dump())
 
@@ -31,6 +33,8 @@ async def duplicated_exception_handler(request: Request, exc: DuplicatedError):
 async def internal_server_error_exception_handler(
     request: Request, exc: InternalServerError
 ):
-    error = ErrorModel(message=str(exc) if str(exc) else "Unknown error")
+    error = ErrorModel(
+        message=str(exc) if str(exc) else "Unknown error", type="UnknownErr"
+    )
     response_model = ResponseModel(success=False, error=error)
     return JSONResponse(status_code=500, content=response_model.model_dump())

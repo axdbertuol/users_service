@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from typing import Type, TypeVar, List, Optional
 
-from app.exceptions import DuplicatedError, InternalServerError
+from app.common.exceptions import DuplicatedError, InternalServerError
 
 
 # Create a generic repository class

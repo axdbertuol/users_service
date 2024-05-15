@@ -1,9 +1,9 @@
 from typing import Annotated, Any
 from fastapi import Depends
-from .repositories.models import User
-from .repositories.database import get_db
-from .repositories.user_repository import UserRepository
-from .services.user_service import UserService
+from ..users.models import User
+from .database import get_db
+from ..users.user_repository import UserRepository
+from ..users.user_service import UserService
 
 
 def make_user_router_deps(

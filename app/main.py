@@ -2,7 +2,7 @@ import os
 import uvicorn
 from fastapi import FastAPI
 
-from app.exceptions import (
+from app.common.exceptions import (
     InternalServerError,
     NotFoundError,
     DuplicatedError,
@@ -11,8 +11,7 @@ from app.exceptions import (
     not_found_exception_handler,
 )
 
-from .routers.user_routes import user_router
-
+from .users.user_routes import user_router
 
 app = FastAPI(debug=True)
 app.include_router(user_router)

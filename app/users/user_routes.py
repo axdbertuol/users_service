@@ -1,16 +1,19 @@
 # Route handler
 from typing import Annotated, Union
-from fastapi import APIRouter, Depends
-from app.dtos.responses import ResponseModel
 
-from ..repositories.schemas import UserUpdateRequest
-from ..dependencies import make_user_router_deps
-from ..config.constants import API_PREFIX
-from ..services.user_service import UserService
-from app.repositories import schemas
+from fastapi import Depends
+
+from app.common.responses import ResponseModel
+
+from ..common.dependencies import make_user_router_deps
+from .schemas import User, UserCreateRequest, UserUpdateRequest
+from .user_service import UserService
+from fastapi import APIRouter
+
+from ..common.config import settings
 
 
-user_router = APIRouter(prefix=API_PREFIX)
+user_router = APIRouter(prefix=settings.get_api_prefix())
 
 
 class CommonQueryParams:
@@ -20,27 +23,25 @@ class CommonQueryParams:
         self.limit = limit
 
 
-@user_router.post(
-    "/users/", response_model=ResponseModel[schemas.User], status_code=201
-)
-async def create_user(
-    user_create_request: schemas.UserCreateRequest,
+@user_router.post("/users/", response_model=ResponseModel[User], status_code=201)
+def create_user(
+    user_create_request: UserCreateRequest,
     user_service: Annotated[UserService, Depends(make_user_router_deps)],
 ):
     user = user_service.create_user(user_create_request)
-    return ResponseModel[schemas.User](success=True, data=user)
+    return ResponseModel[User](success=True, data=user)
 
 
-@user_router.get("/users/{user_id}", response_model=ResponseModel[schemas.User])
-async def read_user(
+@user_router.get("/users/{user_id}", response_model=ResponseModel[User])
+def read_user(
     user_id: int, user_service: Annotated[UserService, Depends(make_user_router_deps)]
 ):
     user = user_service.get_user(user_id)
-    return ResponseModel[schemas.User](success=True, data=user)
+    return ResponseModel[User](success=True, data=user)
 
 
 @user_router.put("/users/{user_id}", response_model=None)
-async def update_user(
+def update_user(
     user_id: int,
     user_update_request: UserUpdateRequest,
     user_service: Annotated[UserService, Depends(make_user_router_deps)],
@@ -49,7 +50,7 @@ async def update_user(
 
 
 @user_router.delete("/users/{user_id}", response_model=None)
-async def delete_user(
+def delete_user(
     user_id: int, user_service: Annotated[UserService, Depends(make_user_router_deps)]
 ):
     user_service.delete_user(user_id)
