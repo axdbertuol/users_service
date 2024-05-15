@@ -20,7 +20,9 @@ class UserService:
         del user_dict["password"]
         created_user = self.user_repo.create(user_dict)
         try:
-            parsed_user = schemas.User.from_orm(created_user)
+            parsed_user = schemas.User.model_validate(
+                created_user, from_attributes=True
+            )
         except Exception:
             raise InternalServerError("Error parsing to user schema")
         return parsed_user
@@ -32,7 +34,7 @@ class UserService:
         if user is None:
             raise NotFoundError
         try:
-            parsed_user = schemas.User.from_orm(user)
+            parsed_user = schemas.User.model_validate(user, from_attributes=True)
         except Exception:
             raise InternalServerError("Error parsing to user schema")
         return parsed_user

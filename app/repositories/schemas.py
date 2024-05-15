@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Optional
 
 
@@ -18,8 +18,7 @@ class User(UserBase):
     id: int
     status: str = "inactive"
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class UserUpdateRequest(BaseModel):
@@ -27,8 +26,7 @@ class UserUpdateRequest(BaseModel):
     username: Optional[str]
     full_name: Optional[str]
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class UserCreateRequest(BaseModel):
@@ -37,5 +35,4 @@ class UserCreateRequest(BaseModel):
     full_name: str
     password: str
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
