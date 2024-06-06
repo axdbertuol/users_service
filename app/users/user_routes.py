@@ -1,19 +1,16 @@
 # Route handler
 from typing import Annotated, Union
 
-from fastapi import Depends
+from fastapi import APIRouter, Depends
 
+from app.common.config import get_settings
+from app.common.dependencies import make_user_router_deps
 from app.common.responses import ResponseModel
 
-from ..common.dependencies import make_user_router_deps
 from .schemas import User, UserCreateRequest, UserUpdateRequest
 from .user_service import UserService
-from fastapi import APIRouter
 
-from ..common.config import settings
-
-
-user_router = APIRouter(prefix=settings.get_api_prefix())
+user_router = APIRouter(prefix=get_settings.get_api_prefix())
 
 
 class CommonQueryParams:
