@@ -7,7 +7,7 @@ from .config import get_settings
 
 
 engine = create_engine(
-    get_settings.get_sql_alch_dbconnstr(), connect_args={"sslmode": "disable"}
+    get_settings().get_sql_alch_dbconnstr(), connect_args={"sslmode": "disable"}
 )
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()

@@ -8,9 +8,9 @@ from app.common.dependencies import make_user_router_deps
 from app.common.responses import ResponseModel
 
 from .schemas import User, UserCreateRequest, UserUpdateRequest
-from .user_service import UserService
+from .service import UserService
 
-user_router = APIRouter(prefix=get_settings.get_api_prefix())
+user_router = APIRouter(prefix=get_settings().get_api_prefix())
 
 
 class CommonQueryParams:

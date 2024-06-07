@@ -7,7 +7,7 @@ T = TypeVar("T")
 class ErrorModel(BaseModel):
     message: str
     type: Optional[str] = None
-    target: Optional[str] = ""
+    # target: Optional[str] = ""
 
 
 class ResponseModel(BaseModel, Generic[T]):

@@ -5,7 +5,7 @@ from typing import Optional
 
 from app.common.exceptions import InternalServerError, NotFoundError
 from .schemas import UserCreateRequest, UserUpdateRequest, User
-from .user_repository import UserRepository
+from .repository import UserRepository
 
 
 class UserService:
