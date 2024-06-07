@@ -1,4 +1,4 @@
-def test_create_user(client, db):
+def test_create_user(client, session):
     user_create_request = {
         "email": "tes2t@example.com",
         "username": "teste",
@@ -11,7 +11,7 @@ def test_create_user(client, db):
     assert "data" in response.json()
 
 
-def test_read_user(client, db):
+def test_read_user(client, session, insert_users):
 
     response = client.get("/api/v1/users/1")
     assert response.status_code == 200
