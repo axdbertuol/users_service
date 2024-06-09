@@ -1,5 +1,3 @@
-from datetime import datetime
-
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
@@ -8,7 +6,7 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from app.initiator import init_app
 
-from app.common.database import Base, get_db
+from app.database import Base, get_db
 from app.users.models import User
 
 
@@ -68,7 +66,7 @@ def insert_users(session: Session):
     users = [
         User(
             id=1,
-            username="Machine-1",
+            username="Machine1",
             email="Machine1@example.com",
             full_name="Machine Tester",
             status="active",
@@ -76,7 +74,7 @@ def insert_users(session: Session):
         ),
         User(
             id=2,
-            username="Machine-2",
+            username="Machine2",
             email="Machine2@example.com",
             full_name="Machine Tester",
             status="active",
@@ -84,7 +82,7 @@ def insert_users(session: Session):
         ),
         User(
             id=3,
-            username="Machine-3",
+            username="Machine3",
             email="Machine3@example.com",
             full_name="Machine Tester",
             status="active",
@@ -92,7 +90,7 @@ def insert_users(session: Session):
         ),
         User(
             id=4,
-            username="Machine-4",
+            username="Machine4",
             email="Machine4@example.com",
             full_name="Machine Tester",
             status="active",

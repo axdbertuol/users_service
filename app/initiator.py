@@ -1,8 +1,8 @@
 from fastapi import FastAPI
 
-from app.common.database import Base, engine
+from app.database import Base, engine
 from app.users.routes import user_router
-from app.common.exceptions import exception_to_handler_list
+from xeez_pyutils.exceptions import exception_to_handler_list
 
 
 def init_app(start_db: bool = True) -> FastAPI:
