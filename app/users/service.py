@@ -1,52 +1,47 @@
 # UserService to handle user-related operations
 
-from typing import Optional
+from typing import List
 
 
-from app.common.exceptions import InternalServerError, NotFoundError
-from .schemas import UserCreateRequest, UserUpdateRequest, User
+from xeez_pyutils.common import CommonQueryParams
+from xeez_pyutils.exceptions import NotFoundError
+from .models import User
+from .protocols.service import UserServiceProtocol
+from .schemas import UserCreateIn, UserUpdateIn
 from .repository import UserRepository
 
 
-class UserService:
+class UserService(UserServiceProtocol):
     def __init__(self, user_repo: UserRepository):
         self.user_repo = user_repo
 
-    def create_user(self, user_create_request: UserCreateRequest):
-        user_dict = user_create_request.model_dump()
+    def create_item(self, body: UserCreateIn) -> User:
+        user_dict = body.model_dump()
         user_dict["hashed_password"] = (
             "hash_password_function(user_create_request.password)"
         )
         del user_dict["password"]
-        created_user = self.user_repo.create(user_dict)
-        try:
-            parsed_user = User.model_validate(created_user, from_attributes=True)
-        except Exception:
-            raise InternalServerError("Error parsing to user schema")
-        return parsed_user
+        created_user = self.user_repo.create(User(), user_dict)
+        return created_user
 
-    def get_user(self, user_id: int) -> Optional[User]:
-        user = self.user_repo.get(
-            user_id,
-        )
+    def update_item(self, item_id: int, body: UserUpdateIn) -> None:
+        user = self.user_repo.get(User, item_id)
         if user is None:
             raise NotFoundError
-        try:
-            parsed_user = User.model_validate(user, from_attributes=True)
-        except Exception:
-            raise InternalServerError("Error parsing to user schema")
-        return parsed_user
-
-    def update_user(self, user_id: int, user_update_request: UserUpdateRequest) -> None:
-        user = self.user_repo.get(user_id)
-        if user is None:
-            raise NotFoundError
-        user_dict = user_update_request.model_dump(exclude_unset=True)
+        user_dict = body.model_dump(exclude_unset=True)
         self.user_repo.update(user, user_dict)
 
-    def delete_user(self, user_id: int) -> None:
-        user = self.user_repo.get(user_id)
+    def delete_item(self, item_id: int) -> None:
+        user = self.user_repo.get(User, item_id)
         if user is None:
             raise NotFoundError
-        delete_op = self.user_repo.delete(user)
-        return delete_op
+        self.user_repo.delete(user)
+
+    def fetch_item(self, item_id: int) -> User:
+        user = self.user_repo.get(User, item_id)
+        if user is None:
+            raise NotFoundError
+        return user
+
+    def fetch_many_items(self, q: CommonQueryParams) -> List[User]:
+        return self.user_repo.get_multi(User, skip=q.skip, limit=q.limit)
