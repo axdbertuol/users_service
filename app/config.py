@@ -6,12 +6,12 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     api_version: str = Field("v1")
     app_name: str = Field("users_service")
-    app_port: int = Field("3336")
+    app_port: int = Field(3336)
     environment: str = Field("dev")
 
     database_driver: str = Field("postgresql")
     database_host: str = Field("localhost")
-    database_port: int = Field("5432")
+    database_port: int = Field(5432)
     database_user: str = Field("tester")
     database_password: str = Field("postgres")
     database_dbname: str = Field("test-db")
@@ -24,7 +24,7 @@ class Settings(BaseSettings):
         return f"/api/{self.api_version}"
 
     def get_sql_alch_dbconnstr(self):
-        return f"postgresql://{self.database_user}:{self.database_password}@{self.database_host}:5432/{self.database_dbname}"
+        return f"postgresql://{self.database_user}:{self.database_password}@{self.database_host}:{self.database_port}/{self.database_dbname}"
 
 
 # Initialize the settings
