@@ -15,6 +15,7 @@ psycopg2-binary = "^2.9.9"
 pydantic-settings = "^2.2.1"
 email-validator = "^2.1.1"
 xeez-pyutils = { git = "https://github.com/axdbertuol/xeez-pyutils.git", rev = "499e318b337f6cb5343bcf1d5268bcbf4a2b2896" }
+aiokafka = "^0.10.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2.0"
