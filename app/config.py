@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     database_password: str = Field("postgres")
     database_dbname: str = Field("test-db")
 
+    kafka_url: str = Field("kafka:9092")
     model_config = SettingsConfigDict(
         env_file=".env", extra="ignore", populate_by_name=True
     )
