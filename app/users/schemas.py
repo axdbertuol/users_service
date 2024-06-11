@@ -1,4 +1,4 @@
-from typing import Self
+from typing import Any, Self
 from pydantic import (
     BaseModel,
     ConfigDict,
@@ -63,3 +63,33 @@ class UserCreateIn(UserBase):
     password: str | None = None
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class UserCreatePayload(BaseModel):
+    user_id: int
+    email: EmailStr
+    username: str
+    hashed_password: str
+    social_id: str
+    role: str
+    status: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class UserUpdatePayload(BaseModel):
+    user_id: int
+    email: EmailStr | None = None
+    username: str | None = None
+    hashed_password: str | None = None
+    social_id: str | None = None
+    role: str | None = None
+    status: str | None = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class KafkaEvent(BaseModel):
+    id: str
+    type: str
+    payload: dict[str, Any]
