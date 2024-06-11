@@ -7,7 +7,7 @@ jobs:
   test-python:
     # Install dependencies and run tests
     docker:
-      - image: cimg/python:3.10-node
+      - image: cimg/python:3.12-node
         environment:
           CI: "y"
     steps:
