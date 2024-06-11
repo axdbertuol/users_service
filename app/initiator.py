@@ -1,3 +1,4 @@
+from typing import Any, Generator
 from fastapi import FastAPI
 
 from app.database import Base, engine
@@ -5,7 +6,9 @@ from app.users.routes import user_router
 from xeez_pyutils.exceptions import exception_to_handler_list
 
 
-def init_app(start_db: bool = True) -> FastAPI:
+def init_app(
+    start_db: bool = True, lifespan: Generator[None, Any, None] = None
+) -> FastAPI:
     """Inicializa a aplicação FastAPI.
 
     Args:
@@ -14,7 +17,7 @@ def init_app(start_db: bool = True) -> FastAPI:
     Returns:
         FastAPI: Instância da aplicação FastAPI inicializada.
     """
-    app = FastAPI()
+    app = FastAPI(debug=True, lifespan=lifespan)
 
     # Inclui roteadores para diferentes endpoints
     app.include_router(user_router)
