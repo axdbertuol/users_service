@@ -1,14 +1,16 @@
-import pytest
+from contextlib import asynccontextmanager
+
+import httpx
+import pytest_asyncio
+from asgi_lifespan import LifespanManager
 from fastapi import FastAPI
-from fastapi.testclient import TestClient
 from sqlalchemy import StaticPool, create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
-from app.initiator import init_app
-
 from app.database import Base, get_db
+from app.initiator import init_app
+from app.producer import get_aioproducer
 from app.users.models import User
-
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
 
@@ -19,30 +21,59 @@ engine = create_engine(
 )
 
 
-@pytest.fixture(scope="package", autouse=True)
-def app():
+@pytest_asyncio.fixture(scope="package", autouse=True)
+async def app():
     """Setup FastAPI application for testing."""
-    app = init_app(start_db=False)
+
+    @asynccontextmanager
+    async def lifespan(app):
+        print("Starting up")
+        yield
+        print("Shutting down")
+
+    app = init_app(start_db=False, lifespan=lifespan)
     return app
 
 
-@pytest.fixture(scope="package")
-def setup_database():
+class MockAIOKafkaProducer:
+    async def start(self):
+        pass
+
+    async def stop(self):
+        pass
+
+    async def send_and_wait(self, topic, value):
+        pass
+
+    async def send(self, topic, value, key):
+        pass
+
+
+mock_aioproducer = MockAIOKafkaProducer()
+
+
+@pytest_asyncio.fixture(scope="function")
+def override_dependencies(app: FastAPI):
+    """Override dependencies for testing."""
+
+    def override_get_aioproducer():
+        yield mock_aioproducer
+
+    app.dependency_overrides[get_aioproducer] = override_get_aioproducer
+    yield
+    app.dependency_overrides.pop(get_aioproducer, None)
+
+
+@pytest_asyncio.fixture(scope="package")
+async def setup_database():
     """Setup database for testing."""
     Base.metadata.create_all(bind=engine)
     yield
     Base.metadata.drop_all(bind=engine)
 
 
-@pytest.fixture(scope="package")
-def client(app, setup_database):
-    """Test client for the application."""
-    with TestClient(app) as c:
-        yield c
-
-
-@pytest.fixture(scope="function")
-def session(app: FastAPI, setup_database):
+@pytest_asyncio.fixture(scope="function")
+async def session(app, setup_database):
     """Database session for testing."""
     connection = engine.connect()
     transaction = connection.begin()
@@ -61,8 +92,18 @@ def session(app: FastAPI, setup_database):
     connection.close()
 
 
-@pytest.fixture(scope="function")
-def insert_users(session: Session):
+@pytest_asyncio.fixture(scope="function")
+async def async_client(app, setup_database):
+    """Async test client for the application."""
+    async with LifespanManager(app) as manager:
+        async with httpx.AsyncClient(
+            transport=httpx.ASGITransport(app=manager.app), base_url="http://test"
+        ) as ac:
+            yield ac
+
+
+@pytest_asyncio.fixture(scope="function")
+async def insert_users(session: Session):
     users = [
         User(
             id=1,
