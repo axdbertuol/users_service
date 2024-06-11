@@ -15,11 +15,11 @@ user_router = APIRouter(prefix=get_settings().get_api_prefix())
 
 
 @user_router.post("/users/", response_model=ResponseModel[UserSchema], status_code=201)
-def create_user(
+async def create_user(
     user_create_request: UserCreateIn,
     user_service: Annotated[UserService, Depends(make_user_router_deps)],
 ):
-    user = user_service.create_item(user_create_request)
+    user = await user_service.create_user(user_create_request)
     return {"success": True, "data": user}
 
 
@@ -41,16 +41,16 @@ def read_many_users(
 
 
 @user_router.put("/users/{user_id}", response_model=None)
-def update_user(
+async def update_user(
     user_id: int,
     user_update_request: UserUpdateIn,
     user_service: Annotated[UserService, Depends(make_user_router_deps)],
 ):
-    user_service.update_item(user_id, user_update_request)
+    await user_service.update_user(user_id, user_update_request)
 
 
 @user_router.delete("/users/{user_id}", response_model=None)
-def delete_user(
+async def delete_user(
     user_id: int, user_service: Annotated[UserService, Depends(make_user_router_deps)]
 ):
-    user_service.delete_item(user_id)
+    await user_service.delete_user(user_id)
