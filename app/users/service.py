@@ -1,6 +1,7 @@
 from typing import List
 
 from aiokafka import AIOKafkaProducer
+from pydantic import ValidationError
 from xeez_pyutils.common import CommonQueryParams
 from xeez_pyutils.exceptions import NotFoundError, InternalServerError
 
@@ -26,18 +27,16 @@ class UserService(UserServiceProtocol):
                 type="user_created",
                 payload=payload,
             ).model_dump_json()
-        except Exception as e:
-            raise InternalServerError(
-                "Something went wrong during processing of event", e
-            )
-
-        try:
             await self.aioproducer.send(
                 topic="user-events",
                 value=value.encode("utf-8"),
                 key=payload["email"].encode("utf-8"),
             )
             return user
+        except ValidationError as e:
+            raise InternalServerError(
+                "Something went wrong during processing of event", e
+            )
         except Exception as e:
             raise InternalServerError(
                 "Something went wrong during kafka message sending", e
@@ -61,17 +60,16 @@ class UserService(UserServiceProtocol):
             value = KafkaEvent(
                 id=user.email, type="user_updated", payload=payload
             ).model_dump_json()
-        except Exception as e:
-            raise InternalServerError(
-                "Something went wrong during processing of event", e
-            )
-        try:
             await self.aioproducer.send(
                 topic="user-events",
                 value=value.encode("utf-8"),
                 key=payload["email"].encode("utf-8"),
             )
             return user
+        except ValidationError as e:
+            raise InternalServerError(
+                "Something went wrong during processing of event", e
+            )
         except Exception as e:
             raise InternalServerError(
                 "Something went wrong during kafka message sending", e
@@ -85,24 +83,22 @@ class UserService(UserServiceProtocol):
         self.user_repo.update(user, user_dict)
 
     async def delete_user(self, item_id: int) -> None:
-        self.delete_item(item_id)
         user = self.user_repo.get(User, item_id)
+        self.delete_item(item_id)
 
         try:
-            payload = {"user_id": user.id}
+            payload = {"user_id": item_id}
             value = KafkaEvent(
                 id=user.email, type="user_deleted", payload=payload
             ).model_dump_json()
-        except Exception as e:
-            raise InternalServerError(
-                "Something went wrong during processing of event", e
-            )
-
-        try:
             await self.aioproducer.send(
                 topic="user-events",
                 value=value.encode("utf-8"),
-                key=payload["email"].encode("utf-8"),
+                key=user.email.encode("utf-8"),
+            )
+        except ValidationError as e:
+            raise InternalServerError(
+                "Something went wrong during processing of event", e
             )
         except Exception as e:
             raise InternalServerError(

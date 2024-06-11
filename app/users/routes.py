@@ -2,19 +2,20 @@
 from typing import Annotated, List
 
 from fastapi import APIRouter, Depends
-
 from xeez_pyutils.common import CommonQueryParams
-from app.config import get_settings
-from app.dependencies import make_user_router_deps
 from xeez_pyutils.responses import ResponseModel
 
-from .schemas import User as UserSchema, UserCreateIn, UserUpdateIn
+from app.config import get_settings
+from app.dependencies import make_user_router_deps
+
+from .schemas import User as UserSchema
+from .schemas import UserCreateIn, UserUpdateIn
 from .service import UserService
 
 user_router = APIRouter(prefix=get_settings().get_api_prefix())
 
 
-@user_router.post("/users/", response_model=ResponseModel[UserSchema], status_code=201)
+@user_router.post("/users", response_model=ResponseModel[UserSchema], status_code=201)
 async def create_user(
     user_create_request: UserCreateIn,
     user_service: Annotated[UserService, Depends(make_user_router_deps)],
@@ -24,15 +25,15 @@ async def create_user(
 
 
 @user_router.get("/users/{user_id}", response_model=ResponseModel[UserSchema])
-def read_user(
+async def read_user(
     user_id: int, user_service: Annotated[UserService, Depends(make_user_router_deps)]
 ):
     user = user_service.fetch_item(user_id)
     return {"success": True, "data": user}
 
 
-@user_router.get("/users/", response_model=ResponseModel[List[UserSchema]])
-def read_many_users(
+@user_router.get("/users", response_model=ResponseModel[List[UserSchema]])
+async def read_many_users(
     user_service: Annotated[UserService, Depends(make_user_router_deps)],
     commons: Annotated[CommonQueryParams, Depends(CommonQueryParams)],
 ):
