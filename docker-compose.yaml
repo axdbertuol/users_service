@@ -14,7 +14,7 @@ services:
       - ${APP_PORT}:${APP_PORT}
     networks:
       - users-api-network
-      # - kafka_network
+      - kafka_network
 
   postgres_users-api:
     container_name: postgres_users-api
@@ -55,6 +55,6 @@ volumes:
 
 networks:
   users-api-network:
-  # kafka_network:
-  #   external: true
-  #   name: kafka_kafka_network
+  kafka_network:
+    external: true
+    name: kafka-docker_kafka_network
