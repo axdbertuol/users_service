@@ -1,27 +1,28 @@
 # Route handler
 from typing import Annotated, List
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
 from xeez_pyutils.common import CommonQueryParams
 from xeez_pyutils.responses import ResponseModel
 
+from app.auth.schemas import TokenData
 from app.config import get_settings
-from app.dependencies import make_user_router_deps
+from app.dependencies import get_token_data, make_user_router_deps
 
 from .schemas import User as UserSchema
-from .schemas import UserCreateIn, UserUpdateIn
+from .schemas import UserUpdateIn
 from .service import UserService
 
 user_router = APIRouter(prefix=get_settings().get_api_prefix())
 
 
-@user_router.post("/users", response_model=ResponseModel[UserSchema], status_code=201)
-async def create_user(
-    user_create_request: UserCreateIn,
-    user_service: Annotated[UserService, Depends(make_user_router_deps)],
-):
-    user = await user_service.create_user(user_create_request)
-    return {"success": True, "data": user}
+# @user_router.post("/users", response_model=ResponseModel[UserSchema], status_code=201)
+# async def create_user(
+#     user_create_request: UserCreateIn,
+#     user_service: Annotated[UserService, Depends(make_user_router_deps)],
+# ):
+#     user = await user_service.create_user(user_create_request)
+#     return {"success": True, "data": user}
 
 
 @user_router.get("/users/{user_id}", response_model=ResponseModel[UserSchema])
@@ -55,3 +56,18 @@ async def delete_user(
     user_id: int, user_service: Annotated[UserService, Depends(make_user_router_deps)]
 ):
     await user_service.delete_user(user_id)
+
+
+@user_router.get("/users/me/", response_model=ResponseModel[UserSchema])
+async def read_users_me(
+    token_data: Annotated[TokenData, Depends(get_token_data)],
+    user_service: Annotated[UserService, Depends(make_user_router_deps)],
+):
+    user = user_service.get_by_username(token_data.username)
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    return {"success": True, "data": user}

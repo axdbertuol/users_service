@@ -1,14 +1,17 @@
-from typing import List
+from typing import Any, List
 
 from aiokafka import AIOKafkaProducer
 from pydantic import ValidationError
 from xeez_pyutils.common import CommonQueryParams
-from xeez_pyutils.exceptions import NotFoundError, InternalServerError
+from xeez_pyutils.exceptions import InternalServerError, NotFoundError
 
 from .models import User
 from .protocols.service import UserServiceProtocol
 from .repository import UserRepository
-from .schemas import KafkaEvent, UserCreateIn, UserUpdateIn
+from .schemas import (
+    KafkaEvent,
+    UserUpdateIn,
+)
 from .schemas import User as UserSchema
 
 
@@ -17,41 +20,16 @@ class UserService(UserServiceProtocol):
         self.user_repo = user_repo
         self.aioproducer = aioproducer
 
-    async def create_user(self, body: UserCreateIn) -> User:
-        user = self.create_item(body)
-        try:
-            payload = UserSchema.model_validate(user).model_dump()
-            payload["user_id"] = user.id
-            value = KafkaEvent(
-                id=payload["email"],
-                type="user_created",
-                payload=payload,
-            ).model_dump_json()
-            await self.aioproducer.send(
-                topic="user-events",
-                value=value.encode("utf-8"),
-                key=payload["email"].encode("utf-8"),
-            )
-            return user
-        except ValidationError as e:
-            raise InternalServerError(
-                "Something went wrong during processing of event", e
-            )
-        except Exception as e:
-            raise InternalServerError(
-                "Something went wrong during kafka message sending", e
-            )
+    def get_by_username(self, username: str) -> User:
+        return self.user_repo.get_by_username(username)
 
-    def create_item(self, body: UserCreateIn) -> User:
-        user_dict = body.model_dump()
-        user_dict["hashed_password"] = (
-            "hash_password_function(user_create_request.password)"
-        )
-        del user_dict["password"]
-        created_user = self.user_repo.create(User(), user_dict)
+    def create_item(self, body: dict[str, Any]) -> User:
+        if body.get("password"):
+            del body["password"]
+        created_user = self.user_repo.create(User(), body)
         return created_user
 
-    async def update_user(self, item_id: int, body: UserUpdateIn) -> None:
+    async def update_user(self, item_id: str, body: UserUpdateIn) -> None:
         self.update_item(item_id, body)
         user = self.user_repo.get(User, item_id)
         try:
@@ -75,7 +53,7 @@ class UserService(UserServiceProtocol):
                 "Something went wrong during kafka message sending", e
             )
 
-    def update_item(self, item_id: int, body: UserUpdateIn) -> None:
+    def update_item(self, item_id: str, body: UserUpdateIn) -> None:
         user = self.user_repo.get(User, item_id)
         if user is None:
             raise NotFoundError
@@ -105,13 +83,13 @@ class UserService(UserServiceProtocol):
                 "Something went wrong during kafka message sending", e
             )
 
-    def delete_item(self, item_id: int) -> None:
+    def delete_item(self, item_id: str) -> None:
         user = self.user_repo.get(User, item_id)
         if user is None:
             raise NotFoundError
         self.user_repo.delete(user)
 
-    def fetch_item(self, item_id: int) -> User:
+    def fetch_item(self, item_id: str) -> User:
         user = self.user_repo.get(User, item_id)
         if user is None:
             raise NotFoundError

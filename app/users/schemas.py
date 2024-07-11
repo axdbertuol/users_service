@@ -10,7 +10,7 @@ from pydantic import (
 
 
 class UserBase(BaseModel):
-    email: str
+    email: EmailStr
     username: str
     full_name: str
 
@@ -32,7 +32,7 @@ class UserBase(BaseModel):
 
 
 class User(UserBase):
-    id: int
+    id: str
     status: str = "inactive"
     hashed_password: str | None = None
     role: str = "user"
@@ -47,10 +47,12 @@ class User(UserBase):
     model_config = ConfigDict(from_attributes=True)
 
 
-class UserUpdateIn(BaseModel):
+class UserUpdateIn(UserBase):
     email: EmailStr | None = None
     username: str | None = None
     full_name: str | None = None
+    hashed_password: str | None = None
+    social_id: str | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -65,8 +67,19 @@ class UserCreateIn(UserBase):
     model_config = ConfigDict(from_attributes=True)
 
 
-class UserCreatePayload(BaseModel):
-    user_id: int
+class UserCreateCredentialsOut(UserBase):
+    email: EmailStr
+    username: str
+    password: str
+    social_id: str
+    role: str
+    status: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class UserCreateCredentialsIn(UserBase):
+    user_id: str
     email: EmailStr
     username: str
     hashed_password: str
@@ -77,8 +90,20 @@ class UserCreatePayload(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class UserUpdatePayload(BaseModel):
-    user_id: int
+# Kafka
+class UserCreatePayload(UserBase):
+    email: EmailStr
+    username: str
+    hashed_password: str
+    social_id: str
+    role: str
+    status: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class UserUpdatePayload(UserBase):
+    user_id: str
     email: EmailStr | None = None
     username: str | None = None
     hashed_password: str | None = None
