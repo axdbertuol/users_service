@@ -17,6 +17,10 @@ class Settings(BaseSettings):
     database_dbname: str = Field("test-db")
 
     kafka_url: str = Field("kafka:9092")
+    secret_key: str = Field("secret")
+    algorithm: str = Field("HS256")
+    access_token_expire_minutes: int = Field(30)
+    refresh_token_expire_minutes: int = Field(10000)
     model_config = SettingsConfigDict(
         env_file=".env", extra="ignore", populate_by_name=True
     )
