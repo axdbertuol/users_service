@@ -33,7 +33,7 @@ class AuthService(AuthServiceProtocol):
 
     def authenticate_user(self, username: str, password: str) -> User | None:
         user = self.user_service.get_by_username(username)
-        if not user:
+        if user is None:
             return None
         if not verify_password(password, user.hashed_password):
             return None

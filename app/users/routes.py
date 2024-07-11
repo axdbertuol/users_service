@@ -16,15 +16,6 @@ from .service import UserService
 user_router = APIRouter(prefix=get_settings().get_api_prefix())
 
 
-# @user_router.post("/users", response_model=ResponseModel[UserSchema], status_code=201)
-# async def create_user(
-#     user_create_request: UserCreateIn,
-#     user_service: Annotated[UserService, Depends(make_user_router_deps)],
-# ):
-#     user = await user_service.create_user(user_create_request)
-#     return {"success": True, "data": user}
-
-
 @user_router.get("/users/{user_id}", response_model=ResponseModel[UserSchema])
 async def read_user(
     user_id: str, user_service: Annotated[UserService, Depends(make_user_router_deps)]
@@ -42,20 +33,29 @@ async def read_many_users(
     return {"success": True, "data": users}
 
 
-@user_router.put("/users/{user_id}", response_model=None)
+@user_router.put(
+    "/users/{user_id}", response_model=ResponseModel, response_model_exclude_unset=True
+)
 async def update_user(
     user_id: str,
     user_update_request: UserUpdateIn,
+    token_data: Annotated[TokenData, Depends(get_token_data)],
     user_service: Annotated[UserService, Depends(make_user_router_deps)],
 ):
-    await user_service.update_user(user_id, user_update_request)
+    user_service.update_item(user_id, user_update_request)
+    return {"success": True}
 
 
-@user_router.delete("/users/{user_id}", response_model=None)
+@user_router.delete(
+    "/users/{user_id}", response_model=ResponseModel, response_model_exclude_unset=True
+)
 async def delete_user(
-    user_id: str, user_service: Annotated[UserService, Depends(make_user_router_deps)]
+    user_id: str,
+    user_service: Annotated[UserService, Depends(make_user_router_deps)],
+    token_data: Annotated[TokenData, Depends(get_token_data)],
 ):
-    await user_service.delete_user(user_id)
+    user_service.delete_item(user_id)
+    return {"success": True}
 
 
 @user_router.get("/users/me/", response_model=ResponseModel[UserSchema])

@@ -51,7 +51,7 @@ class UserUpdateIn(BaseModel):
     email: EmailStr | None = None
     username: str | None = None
     full_name: str | None = None
-    hashed_password: str | None = None
+    password: str | None = None
     social_id: str | None = None
 
     model_config = ConfigDict(from_attributes=True)

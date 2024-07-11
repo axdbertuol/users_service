@@ -6,6 +6,8 @@ from pydantic import ValidationError
 from xeez_pyutils.common import CommonQueryParams
 from xeez_pyutils.exceptions import InternalServerError, NotFoundError
 
+from app.auth.utils import get_password_hash, verify_password
+
 from .models import User
 from .protocols.service import UserServiceProtocol
 from .repository import UserRepository
@@ -21,7 +23,7 @@ class UserService(UserServiceProtocol):
         self.user_repo = user_repo
         self.aioproducer = aioproducer
 
-    def get_by_username(self, username: str) -> User:
+    def get_by_username(self, username: str) -> User | None:
         user = self.user_repo.get_by_username(username)
         if user is None:
             raise HTTPException(
@@ -67,6 +69,16 @@ class UserService(UserServiceProtocol):
         if user is None:
             raise NotFoundError
         user_dict = body.model_dump(exclude_unset=True)
+        if user_dict.get("password", None) is not None:
+            plain_password = user_dict.get("password")
+            if verify_password(plain_password, user.hashed_password):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Could not update password",
+                    # headers={"WWW-Authenticate": "Bearer"},
+                )
+            del user_dict["password"]
+            user_dict["hashed_password"] = get_password_hash(plain_password)
         self.user_repo.update(user, user_dict)
 
     async def delete_user(self, item_id: str) -> None:
