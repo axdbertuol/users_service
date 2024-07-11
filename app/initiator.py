@@ -1,8 +1,10 @@
+import logging
 from typing import Any, Generator
 from fastapi import FastAPI
 
 from app.database import Base, engine
 from app.users.routes import user_router
+from app.auth.routes import auth_router
 from xeez_pyutils.exceptions import exception_to_handler_list
 
 
@@ -18,9 +20,10 @@ def init_app(
         FastAPI: Instância da aplicação FastAPI inicializada.
     """
     app = FastAPI(debug=True, lifespan=lifespan)
-
+    logging.getLogger("passlib").setLevel(logging.ERROR)
     # Inclui roteadores para diferentes endpoints
     app.include_router(user_router)
+    app.include_router(auth_router)
 
     # Adiciona manipuladores de exceção
     for exception_class, handler_function in exception_to_handler_list:

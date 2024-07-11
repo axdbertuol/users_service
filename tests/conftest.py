@@ -1,6 +1,9 @@
+import asyncio
 from contextlib import asynccontextmanager
+import os
 
 import httpx
+import pytest
 import pytest_asyncio
 from asgi_lifespan import LifespanManager
 from fastapi import FastAPI
@@ -9,7 +12,7 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from app.database import Base, get_db
 from app.initiator import init_app
-from app.producer import get_aioproducer
+from app.producer import get_aioproducer, loop
 from app.users.models import User
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
@@ -19,6 +22,11 @@ engine = create_engine(
     connect_args={"check_same_thread": False},
     poolclass=StaticPool,
 )
+
+mock_user_password = {
+    "plain": "P@ssw0rd",
+    "hashed": "$2b$12$9GpKYahAVQZXPrKb1c2jxerzhkKudmZBfkFqGcx/dSBjHS1l7xAGW",
+}
 
 
 @pytest_asyncio.fixture(scope="package", autouse=True)
@@ -32,7 +40,18 @@ async def app():
         print("Shutting down")
 
     app = init_app(start_db=False, lifespan=lifespan)
+
     return app
+
+
+@pytest_asyncio.fixture(scope="function", autouse=True)
+async def set_env_variables(monkeypatch):
+    monkeypatch.setenv(
+        "SECRET_KEY", "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"
+    )
+    monkeypatch.setenv("ALGORITHM", "HS256")
+    monkeypatch.setenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30")
+    monkeypatch.setenv("REFRESH_TOKEN_EXPIRE_MINUTES", "10080")
 
 
 class MockAIOKafkaProducer:
@@ -53,7 +72,7 @@ mock_aioproducer = MockAIOKafkaProducer()
 
 
 @pytest_asyncio.fixture(scope="function")
-def override_dependencies(app: FastAPI):
+async def override_kafka_dependencies(app: FastAPI):
     """Override dependencies for testing."""
 
     def override_get_aioproducer():
@@ -92,6 +111,13 @@ async def session(app, setup_database):
     connection.close()
 
 
+# @pytest_asyncio.fixture(scope="session")
+# async def event_loop():
+#     loop = asyncio.get_event_loop_policy().new_event_loop()
+#     yield loop
+#     loop.close()
+
+
 @pytest_asyncio.fixture(scope="function")
 async def async_client(app, setup_database):
     """Async test client for the application."""
@@ -106,33 +132,37 @@ async def async_client(app, setup_database):
 async def insert_users(session: Session):
     users = [
         User(
-            id=1,
+            id="1",
             username="Machine1",
+            hashed_password=mock_user_password["hashed"],
             email="Machine1@example.com",
             full_name="Machine Tester",
             status="active",
             role="user",
         ),
         User(
-            id=2,
+            id="2",
             username="Machine2",
             email="Machine2@example.com",
+            hashed_password=mock_user_password["hashed"],
             full_name="Machine Tester",
             status="active",
             role="user",
         ),
         User(
-            id=3,
+            id="3",
             username="Machine3",
             email="Machine3@example.com",
+            hashed_password=mock_user_password["hashed"],
             full_name="Machine Tester",
             status="active",
             role="user",
         ),
         User(
-            id=4,
+            id="4",
             username="Machine4",
             email="Machine4@example.com",
+            hashed_password=mock_user_password["hashed"],
             full_name="Machine Tester",
             status="active",
             role="user",

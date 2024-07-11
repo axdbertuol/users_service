@@ -1,8 +1,11 @@
+import os
 from app.producer import lifespan
 from .initiator import init_app
 
-
-app = init_app(lifespan=lifespan)
+if os.getenv("KAFKA_STATUS") == "true":
+    app = init_app(lifespan=lifespan)
+else:
+    app = init_app()
 
 
 @app.get("/")
