@@ -9,14 +9,14 @@ services:
     env_file:
       - .env
     depends_on:
-      - postgres_users-api
+      - db
     ports:
       - ${APP_PORT}:${APP_PORT}
     networks:
       - users-api-network
-      - kafka_network
+      # - kafka_network
 
-  postgres_users-api:
+  db:
     container_name: postgres_users-api
     image: postgres:16.1-alpine
     restart: always
@@ -55,6 +55,6 @@ volumes:
 
 networks:
   users-api-network:
-  kafka_network:
-    external: true
-    name: kafka-docker_kafka_network
+  # kafka_network:
+  #   external: true
+  #   name: kafka-docker_kafka_network
