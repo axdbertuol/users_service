@@ -171,3 +171,13 @@ async def insert_users(session: Session):
     session.add_all(users)
     session.commit()
     return users
+
+
+@pytest_asyncio.fixture(scope="function")
+async def login_tokens(insert_users, async_client):
+    login_response = await async_client.post(
+        "/api/v1/auth/login",
+        data={"username": "Machine1", "password": mock_user_password["plain"]},
+    )
+    tokens = login_response.json()
+    return tokens

@@ -11,13 +11,18 @@ from .conftest import mock_user_password
 @pytest.mark.asyncio
 async def test_update_user(
     async_client: httpx.AsyncClient,
-    override_kafka_dependencies,
     insert_users,
+    login_tokens,
+    override_kafka_dependencies,
 ):
     user_update_request = {
         "full_name": "xis",
     }
-    response = await async_client.put("/api/v1/users/1", json=user_update_request)
+    response = await async_client.put(
+        "/api/v1/users/1",
+        json=user_update_request,
+        headers={"Authorization": "Bearer " + login_tokens["access_token"]},
+    )
     assert response.status_code == 200
     response = await async_client.get("/api/v1/users/1")
     assert response.status_code == 200
@@ -25,9 +30,14 @@ async def test_update_user(
 
 
 @pytest.mark.asyncio
-async def test_delete_user(async_client, override_kafka_dependencies, insert_users):
+async def test_delete_user(
+    async_client, override_kafka_dependencies, login_tokens, insert_users
+):
 
-    response = await async_client.delete("/api/v1/users/2")
+    response = await async_client.delete(
+        "/api/v1/users/2",
+        headers={"Authorization": "Bearer " + login_tokens["access_token"]},
+    )
     assert response.status_code == 200
     response = await async_client.get("/api/v1/users/2")
     assert response.status_code == 404
