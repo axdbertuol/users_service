@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, timezone
+from typing import Any
 
 import jwt
 from fastapi import HTTPException, status
@@ -36,7 +37,7 @@ def decode_token(token: str):
         )
 
 
-def create_token(data: dict, expires_delta: timedelta | None = None):
+def create_token(data: dict[str, Any], expires_delta: timedelta | None = None):
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta

@@ -27,7 +27,7 @@ user_router = APIRouter(prefix=get_settings().get_api_prefix())
 
 @user_router.get("/users/{user_id}", response_model=ResponseModel[UserSchema])
 async def read_user(
-    user_id: int, user_service: Annotated[UserService, Depends(make_user_router_deps)]
+    user_id: str, user_service: Annotated[UserService, Depends(make_user_router_deps)]
 ):
     user = user_service.fetch_item(user_id)
     return {"success": True, "data": user}
@@ -44,7 +44,7 @@ async def read_many_users(
 
 @user_router.put("/users/{user_id}", response_model=None)
 async def update_user(
-    user_id: int,
+    user_id: str,
     user_update_request: UserUpdateIn,
     user_service: Annotated[UserService, Depends(make_user_router_deps)],
 ):
@@ -53,7 +53,7 @@ async def update_user(
 
 @user_router.delete("/users/{user_id}", response_model=None)
 async def delete_user(
-    user_id: int, user_service: Annotated[UserService, Depends(make_user_router_deps)]
+    user_id: str, user_service: Annotated[UserService, Depends(make_user_router_deps)]
 ):
     await user_service.delete_user(user_id)
 
@@ -63,11 +63,12 @@ async def read_users_me(
     token_data: Annotated[TokenData, Depends(get_token_data)],
     user_service: Annotated[UserService, Depends(make_user_router_deps)],
 ):
-    user = user_service.get_by_username(token_data.username)
-    if user is None:
+    if token_data.username is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Could not validate credentials",
+            detail="Authorization failed",
             headers={"WWW-Authenticate": "Bearer"},
         )
+    user = user_service.get_by_username(token_data.username)
+
     return {"success": True, "data": user}

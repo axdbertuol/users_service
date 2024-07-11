@@ -1,23 +1,20 @@
-from datetime import datetime, timedelta, timezone
-from typing import Annotated, Any
-from fastapi import Depends, HTTPException, status
+from typing import Any
+from fastapi import HTTPException, status
 import jwt
 from aiokafka import AIOKafkaProducer
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from jwt.exceptions import InvalidTokenError, PyJWTError, ExpiredSignatureError
+from fastapi.security import OAuth2PasswordRequestForm
+from jwt.exceptions import InvalidTokenError, ExpiredSignatureError
 
-from passlib.context import CryptContext
-from xeez_pyutils.exceptions import InternalServerError, NotFoundError
 
 from app.auth.utils import (
     create_jwt_tokens,
-    create_token,
     get_password_hash,
     verify_password,
 )
 from app.auth.protocols.service import AuthServiceProtocol
-from app.auth.schemas import Token, TokenRefresh, TokenData
+from app.auth.schemas import TokenRefresh, TokenData
 from app.config import get_settings
+from app.users.models import User
 from app.users.schemas import UserCreateIn
 from app.users.schemas import User as UserSchema
 from app.users.service import UserService
@@ -34,19 +31,19 @@ class AuthService(AuthServiceProtocol):
         self.user_service = user_service
         self.settings = get_settings()
 
-    def authenticate_user(self, username: str, password: str):
+    def authenticate_user(self, username: str, password: str) -> User | None:
         user = self.user_service.get_by_username(username)
         if not user:
-            return False
+            return None
         if not verify_password(password, user.hashed_password):
-            return False
+            return None
         return user
 
     async def login(self, credentials: OAuth2PasswordRequestForm) -> dict[str, Any]:
         user = self.authenticate_user(
             username=credentials.username, password=credentials.password
         )
-        if not user:
+        if user is None:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Incorrect username or password",

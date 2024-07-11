@@ -1,6 +1,7 @@
 from typing import Any, List
 
 from aiokafka import AIOKafkaProducer
+from fastapi import HTTPException, status
 from pydantic import ValidationError
 from xeez_pyutils.common import CommonQueryParams
 from xeez_pyutils.exceptions import InternalServerError, NotFoundError
@@ -21,7 +22,14 @@ class UserService(UserServiceProtocol):
         self.aioproducer = aioproducer
 
     def get_by_username(self, username: str) -> User:
-        return self.user_repo.get_by_username(username)
+        user = self.user_repo.get_by_username(username)
+        if user is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Could not validate credentials",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        return user
 
     def create_item(self, body: dict[str, Any]) -> User:
         if body.get("password"):
@@ -32,18 +40,19 @@ class UserService(UserServiceProtocol):
     async def update_user(self, item_id: str, body: UserUpdateIn) -> None:
         self.update_item(item_id, body)
         user = self.user_repo.get(User, item_id)
+        if user is None:
+            raise NotFoundError
         try:
             payload = UserSchema.model_validate(user).model_dump()
-            payload["user_id"] = user.id
             value = KafkaEvent(
-                id=user.email, type="user_updated", payload=payload
+                id=user.id.__str__(), type="user_updated", payload=payload
             ).model_dump_json()
             await self.aioproducer.send(
                 topic="user-events",
                 value=value.encode("utf-8"),
                 key=payload["email"].encode("utf-8"),
             )
-            return user
+            # return user
         except ValidationError as e:
             raise InternalServerError(
                 "Something went wrong during processing of event", e
@@ -60,19 +69,21 @@ class UserService(UserServiceProtocol):
         user_dict = body.model_dump(exclude_unset=True)
         self.user_repo.update(user, user_dict)
 
-    async def delete_user(self, item_id: int) -> None:
+    async def delete_user(self, item_id: str) -> None:
         user = self.user_repo.get(User, item_id)
+        if user is None:
+            raise NotFoundError
         self.delete_item(item_id)
-
+        email = user.email.__str__()
         try:
             payload = {"user_id": item_id}
             value = KafkaEvent(
-                id=user.email, type="user_deleted", payload=payload
+                id=item_id, type="user_deleted", payload=payload
             ).model_dump_json()
             await self.aioproducer.send(
                 topic="user-events",
                 value=value.encode("utf-8"),
-                key=user.email.encode("utf-8"),
+                key=email.encode("utf-8"),
             )
         except ValidationError as e:
             raise InternalServerError(

@@ -47,7 +47,7 @@ class User(UserBase):
     model_config = ConfigDict(from_attributes=True)
 
 
-class UserUpdateIn(UserBase):
+class UserUpdateIn(BaseModel):
     email: EmailStr | None = None
     username: str | None = None
     full_name: str | None = None
@@ -86,30 +86,6 @@ class UserCreateCredentialsIn(UserBase):
     social_id: str
     role: str
     status: str
-
-    model_config = ConfigDict(from_attributes=True)
-
-
-# Kafka
-class UserCreatePayload(UserBase):
-    email: EmailStr
-    username: str
-    hashed_password: str
-    social_id: str
-    role: str
-    status: str
-
-    model_config = ConfigDict(from_attributes=True)
-
-
-class UserUpdatePayload(UserBase):
-    user_id: str
-    email: EmailStr | None = None
-    username: str | None = None
-    hashed_password: str | None = None
-    social_id: str | None = None
-    role: str | None = None
-    status: str | None = None
 
     model_config = ConfigDict(from_attributes=True)
 

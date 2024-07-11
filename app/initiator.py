@@ -9,7 +9,7 @@ from xeez_pyutils.exceptions import exception_to_handler_list
 
 
 def init_app(
-    start_db: bool = True, lifespan: Generator[None, Any, None] = None
+    start_db: bool = True, lifespan: Generator[None, Any, None] | None = None
 ) -> FastAPI:
     """Inicializa a aplicação FastAPI.
 
